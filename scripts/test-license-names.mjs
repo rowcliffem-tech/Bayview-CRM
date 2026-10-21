@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {cleanGivenNames,resolveGivenNameReadings,locateGivenNameLine} from '../lib/license-name-reader.mjs';
+assert.equal(cleanGivenNames('ALEX.JAMIE'),'ALEX JAMIE');assert.equal(cleanGivenNames('JEAN-LUC ÉMILE'),'JEAN-LUC ÉMILE');assert.equal(cleanGivenNames('8 100 DEMO STREET'),'');
+const recovered=resolveGivenNameReadings([{text:'WMICHAL DARREN',confidence:72,source:'pattern-reduced'},{text:'MICHAEL.DARREN',confidence:23,source:'original'},{text:'MICHAEL.DARREN',confidence:86,source:'contrast'}]);assert.equal(recovered.firstName,'MICHAEL');assert.equal(recovered.middleName,'DARREN');assert.equal(recovered.needsReview,false);
+const realSpelling=resolveGivenNameReadings([{text:'MICHAL PIOTR',confidence:90,source:'original'},{text:'MICHAL PIOTR',confidence:87,source:'contrast'}]);assert.equal(realSpelling.firstName,'MICHAL','Never correct an observed legitimate spelling using a name dictionary');
+assert.equal(resolveGivenNameReadings([{text:'WMICHAL DARREN',confidence:80,source:'original'}]).needsReview,true,'A single reading does not establish agreement');
+assert.equal(resolveGivenNameReadings([{text:'ALEX JAMIE',confidence:90,source:'original'},{text:'ALFX JAMIE',confidence:89,source:'contrast'}]).needsReview,true);
+assert.equal(resolveGivenNameReadings([{text:'NAME/NOM',confidence:90,source:'original'}]).firstName,'');
+const line=(text,x0,y0,x1,y1)=>({text,confidence:80,bbox:{x0,y0,x1,y1}}),data={blocks:[{paragraphs:[{lines:[line('NAME/NOM',340,180,520,210),line('DEMO,',350,240,600,270),line('ALEX JAMIE',352,290,750,325),line('8 100 DEMO STREET',350,345,850,385),line('TORONTO ON M5V 1A1',350,400,900,435)]}]}]};
+const located=locateGivenNameLine(data,1000,1000);assert.equal(located.text,'ALEX JAMIE');assert.ok(located.rect[1]<.29&&located.rect[1]+located.rect[3]<.345,'The reading area follows the given-name row and excludes the address');assert.equal(locateGivenNameLine({blocks:[]},1000,1000),null);
+console.log('PASS: observed-name consensus, WMICHAL regression, legitimate spellings and hyphens preserved, uncertain readings flagged, and name-line location excludes labels/address.');

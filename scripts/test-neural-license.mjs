@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {neuralLicenseProfile,neuralTextLines,normalizeNeuralLabels} from '../lib/neural-license-result.mjs';
+const item=(text,x,y,score=.99)=>({text,score,poly:[[x,y],[x+180,y],[x+180,y+20],[x,y+20]]});
+const result={items:[item('ONTARIO DRIVER LICENCE',0,0),item('2 NAMEINOM',0,30),item('DEMO,',0,60),item('ALEX JAMIE',0,90),item('8 100 DEMO STREET',0,120),item('TORONTO ON M5V IA1',0,150),item('3 DOB/DDN 1990/01/15',0,180),item('4b EXP 2030/01/15',0,210),item('-12345',210,240),item('A1234-12345',0,240)]};
+const {profile}=neuralLicenseProfile(result);
+assert.equal(profile.firstName,'ALEX');assert.equal(profile.middleName,'JAMIE');assert.equal(profile.lastName,'DEMO');
+assert.equal(profile.dateOfBirth,'1990-01-15');assert.equal(profile.expiryDate,'2030-01-15');
+assert.equal(profile.licenseNumber,'A1234-12345-12345');assert.equal(profile.city,'TORONTO');assert.equal(profile.postalCode,'M5V 1A1');
+assert.equal(neuralTextLines(result).at(-1).text,'A1234-12345 -12345','Join number fragments by position, not SDK return order');
+assert.equal(normalizeNeuralLabels('MILO OLSON'),'MILO OLSON','Never substitute lookalikes in names');
+assert.equal(normalizeNeuralLabels('ON M5V OA1'),'ON M5V 0A1');
+assert.equal(neuralTextLines({items:[item('guess',0,0,.3)]}).length,0);
+assert.throws(()=>neuralLicenseProfile({items:[item('Unrelated document',0,0)]}),/licence front/);
+assert.equal(neuralLicenseProfile({items:[item('DRIVER LICENCE',0,0),item('DOB 2099/01/15',0,30)]}).profile.dateOfBirth,'');
+console.log('PASS: geometric fragment order, bilingual label normalization, separate names, dates, postal lookalikes, low-confidence rejection and future DOB handling.');

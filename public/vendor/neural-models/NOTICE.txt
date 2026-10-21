@@ -1,0 +1,15 @@
+PaddleOCR mobile licence reader
+
+SDK: @paddleocr/paddleocr-js 0.4.2, PaddlePaddle/PaddleOCR, Apache License 2.0.
+Models: PP-OCRv5_mobile_det and en_PP-OCRv5_mobile_rec, official PaddleOCR
+ONNX inference archives. Original URLs and SHA-256 hashes: manifest.json.
+Official project: https://github.com/PaddlePaddle/PaddleOCR
+PaddleOCR license: PADDLE-LICENSE.txt.
+
+Runtime: Microsoft ONNX Runtime Web 1.24.3, MIT License (ONNX-LICENSE.txt).
+OpenCV.js dependency: @techstark/opencv-js (Apache License 2.0), included
+through the official SDK. OpenCV: https://opencv.org/license/
+
+Local integration bundles a CPU-only worker, pins model versions, groups
+detected text by geometric position and maps labelled licence fields.
+No model training or proprietary scanner implementation is included.
